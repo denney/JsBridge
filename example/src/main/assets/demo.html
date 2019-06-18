@@ -1,0 +1,126 @@
+<html>
+<head>
+    <meta content="text/html; charset=utf-8" http-equiv="content-type">
+    <title>
+        js调用java
+    </title>
+</head>
+
+<body>
+<p>
+    <xmp id="show">
+    </xmp>
+</p>
+<p>
+    <xmp id="init">
+    </xmp>
+</p>
+<p>
+    <input type="text" id="text1" value="用户名(username)"/>
+</p>
+<p>
+    <input type="text" id="text2" value="password"/>
+</p>
+<p>
+    <input type="button" id="enter" value="js发消息给android" onclick="testClick();"
+    />
+</p>
+<p>
+    <input type="button" id="enter1" value="js调用安卓" onclick="testClick1();"
+    />
+</p>
+<p>
+    <input type="button" id="enter2" value="显示html" onclick="testDiv();"/>
+</p>
+<p>
+    <input type="file" value="打开文件"/>
+</p>
+</body>
+<script>
+        function testDiv() {
+        <!--显示区域-->
+            document.getElementById("show").innerHTML = document.getElementsByTagName("html")[0].innerHTML;
+        }
+
+        function testClick() {
+        <!--获取用户名的值-->
+            var str1 = document.getElementById("text1").value;
+            <!--获取密码的值-->
+            var str2 = document.getElementById("text2").value;
+
+            <!--//send message to native   发送数据给native-->
+            var data = {id: 1, content: "js：你收到我的信息了么"};
+
+            window.WebViewJavascriptBridge.send( data, function(responseData) {
+                    document.getElementById("show").innerHTML = "android :" + responseData
+                }
+            );
+
+        }
+
+        function testClick1() {
+        <!--获取用户名的值-->
+            var str1 = document.getElementById("text1").value;
+            <!--获取密码的值-->
+            var str2 = document.getElementById("text2").value;
+
+            //call native method
+            <!--web调用native方法-->
+            window.WebViewJavascriptBridge.callHandler(
+                'submitFromWeb'
+                , {'param': 'js:你收到我的信息了么'}
+                , function(responseData) {
+                    document.getElementById("show").innerHTML = "android:" + responseData
+                }
+            );
+        }
+
+        function bridgeLog(logContent) {
+            document.getElementById("show").innerHTML = logContent;
+        }
+
+        function connectWebViewJavascriptBridge(callback) {
+            if (window.WebViewJavascriptBridge) {
+                callback(WebViewJavascriptBridge)
+            } else {
+                document.addEventListener(
+                    'WebViewJavascriptBridgeReady'
+                    , function() {
+                        callback(WebViewJavascriptBridge)
+                    },
+                    false
+                );
+            }
+        }
+
+        connectWebViewJavascriptBridge(function(bridge) {
+            bridge.init(function(message, responseCallback) {
+                console.log('JS got a message', message);
+                var data = {
+                    'Javascript Responds': '测试中文!'
+                };
+
+                if (responseCallback) {
+                    console.log('JS responding with', data);
+                    responseCallback(data);
+                }
+            });
+
+            bridge.registerHandler("functionInJs", function(data, responseCallback) {
+                document.getElementById("show").innerHTML = ("android :" + data);
+                if (responseCallback) {
+                <!--java调用web web 给java返回值-->
+                    var responseData = "js 收到";
+                    responseCallback(responseData);
+                }
+            });
+        })
+
+
+
+
+
+</script>
+
+</html>
+
